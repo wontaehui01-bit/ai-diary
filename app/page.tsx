@@ -35,6 +35,18 @@ export default function Home() {
     }
   };
 
+  const handleRestart = () => {
+    if (confirm("일기를 초기화하고 다시 작성할까요?")) {
+      setDiaryText("");
+      setResult("");
+      setSentiment(null);
+    }
+  };
+
+  const handleSave = () => {
+    alert("일기가 성공적으로 저장되었습니다!");
+  };
+
   const sentiments = [
     { emoji: "😸", label: "행복" },
     { emoji: "😿", label: "슬픔" },
@@ -54,9 +66,17 @@ export default function Home() {
             <p className="text-[#64748b] mt-1 font-medium">목요일 • 오후 12:02</p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-gray-100 shadow-sm text-sm font-semibold text-[#4f46e5] hover:bg-gray-50 transition-all">
-              <span>📖</span> 일기 목록
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleRestart}
+                className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-gray-100 shadow-sm text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all"
+              >
+                <span>🔄</span> 재시작
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-gray-100 shadow-sm text-sm font-semibold text-[#4f46e5] hover:bg-gray-50 transition-all">
+                <span>📖</span> 일기 목록
+              </button>
+            </div>
             <h2 className="text-xl font-bold text-[#2d3a54]">오늘의 일기 회고</h2>
           </div>
         </div>
@@ -103,13 +123,23 @@ export default function Home() {
 
         {/* AI Analysis Result Area */}
         {result && (
-          <div className="bg-[#7c5eff]/5 rounded-[2rem] p-8 border border-[#7c5eff]/10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h3 className="text-[#7c5eff] font-bold mb-3 flex items-center gap-2">
-              <span>🤖</span> AI 분석 결과
-            </h3>
-            <p className="text-lg leading-relaxed text-[#2d3a54] font-medium">
-              {result}
-            </p>
+          <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700 flex flex-col gap-4">
+            <div>
+              <h3 className="text-[#7c5eff] font-bold mb-3 flex items-center gap-2">
+                <span>🤖</span> AI 분석 결과
+              </h3>
+              <p className="text-lg leading-relaxed text-[#2d3a54] font-medium">
+                {result}
+              </p>
+            </div>
+            <div className="flex justify-end border-t border-gray-50 pt-4 mt-2">
+              <button
+                onClick={handleSave}
+                className="flex items-center gap-2 px-8 py-3 bg-[#1e293b] text-white rounded-2xl font-bold hover:bg-[#0f172a] transition-all shadow-md active:scale-95"
+              >
+                <span>💾</span> 일기 저장하기
+              </button>
+            </div>
           </div>
         )}
 
