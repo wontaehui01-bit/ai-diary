@@ -1,65 +1,119 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
 
 export default function Home() {
+  const [diaryText, setDiaryText] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [result, setResult] = useState("");
+  const [sentiment, setSentiment] = useState<number | null>(null);
+
+  const handleAnalyze = async () => {
+    if (!diaryText.trim()) return;
+
+    setIsAnalyzing(true);
+    setResult("");
+    setSentiment(null);
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: diaryText }),
+      });
+
+      if (!response.ok) throw new Error("Analysis failed");
+
+      const data = await response.json();
+      setResult(data.analysis);
+      setSentiment(data.sentimentIndex);
+    } catch (error) {
+      console.error(error);
+      setResult("죄송합니다. 분석 중 오류가 발생했습니다. 다시 시도해 주세요.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const sentiments = [
+    { emoji: "😸", label: "행복" },
+    { emoji: "😿", label: "슬픔" },
+    { emoji: "😾", label: "분노" },
+    { emoji: "🙀", label: "놀람" },
+    { emoji: "😽", label: "평온" },
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center p-6 text-[#1e293b]">
+      <div className="w-full max-w-xl flex flex-col gap-6">
+        
+        {/* Header Area */}
+        <div className="flex justify-between items-end">
+          <div>
+            <h1 className="text-4xl font-extrabold tracking-tight text-[#2d3a54]">4월 9일</h1>
+            <p className="text-[#64748b] mt-1 font-medium">목요일 • 오후 12:02</p>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <button className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-gray-100 shadow-sm text-sm font-semibold text-[#4f46e5] hover:bg-gray-50 transition-all">
+              <span>📖</span> 일기 목록
+            </button>
+            <h2 className="text-xl font-bold text-[#2d3a54]">오늘의 일기 회고</h2>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Diary Input Area */}
+        <div className="bg-white rounded-[2rem] shadow-sm p-8 relative flex flex-col border border-gray-100 min-h-[400px]">
+          <textarea
+            value={diaryText}
+            onChange={(e) => setDiaryText(e.target.value)}
+            placeholder="오늘 하루는 어떠셨나요? 당신의 마음을 들려주세요."
+            className="flex-1 w-full bg-transparent border-none focus:ring-0 text-lg placeholder-gray-300 resize-none leading-relaxed outline-none"
+          />
+          <div className="flex justify-end mt-4">
+            <button
+              onClick={handleAnalyze}
+              disabled={isAnalyzing || !diaryText.trim()}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-bold transition-all shadow-lg ${
+                isAnalyzing || !diaryText.trim() 
+                ? "bg-gray-300 cursor-not-allowed" 
+                : "bg-[#7c5eff] hover:bg-[#6b4ef1] hover:translate-y-[-2px] active:translate-y-[0px]"
+              }`}
+            >
+              <span className="text-lg">✨</span>
+              {isAnalyzing ? "분석 중..." : "AI 분석하기"}
+            </button>
+          </div>
         </div>
-      </main>
+
+        {/* Sentiment Emoji Area */}
+        <div className="bg-white/60 backdrop-blur-md rounded-[2rem] shadow-sm p-4 border border-white/50 flex justify-around items-center h-24">
+          {sentiments.map((item, idx) => (
+            <div
+              key={idx}
+              className={`w-14 h-14 rounded-full flex items-center justify-center text-3xl transition-all duration-500 bg-white/40 shadow-inner ${
+                sentiment === idx 
+                ? "scale-125 bg-white shadow-md ring-4 ring-[#7c5eff]/10 grayscale-0" 
+                : "grayscale opacity-40"
+              }`}
+            >
+              {item.emoji}
+            </div>
+          ))}
+        </div>
+
+        {/* AI Analysis Result Area */}
+        {result && (
+          <div className="bg-[#7c5eff]/5 rounded-[2rem] p-8 border border-[#7c5eff]/10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h3 className="text-[#7c5eff] font-bold mb-3 flex items-center gap-2">
+              <span>🤖</span> AI 분석 결과
+            </h3>
+            <p className="text-lg leading-relaxed text-[#2d3a54] font-medium">
+              {result}
+            </p>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
